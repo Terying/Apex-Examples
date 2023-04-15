@@ -1,0 +1,21 @@
+{
+  "name": "limit",
+  "version": "1.0.0",
+  "description": "webgl game engine.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "pack": "webpack",
+    "watch": "webpack -w"
+  },
+  "author": "jhui",
+  "license": "ISC",
+  "dependencies": {
+    "buffer": "^6.0.3",
+    "ts-loader": "^9.4.1",
+    "typescript": "^4.8.4",
+    "webpack": "^5.74.0",
+    "webpack-cli": "^4.10.0",
+    "webpack-glsl-loader": "^1.0.1"
+  }
+}
