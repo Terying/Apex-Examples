@@ -40,7 +40,7 @@
 
 # 案例
 ## 程序化天空盒
-![](./doc/res/image/程序天空盒.png#pic_center)
+![](./doc/res/image/%E7%A8%8B%E5%BA%8F%E5%A4%A9%E7%A9%BA%E7%9B%92.png#pic_center)
 ## 立方纹理天空盒
 ![](./doc/res/image/立方纹理天空盒.png#pic_center)
 ## 组件的创建
