@@ -40,43 +40,44 @@
 
 # 案例
 ## 程序化天空盒
-![](./doc/res/image/%E7%A8%8B%E5%BA%8F%E5%A4%A9%E7%A9%BA%E7%9B%92.png#pic_center)
+![](https://g901-1259621134.cos.ap-guangzhou.myqcloud.com/Web/Apex-Examples/doc/res/image/%E7%A8%8B%E5%BA%8F%E5%A4%A9%E7%A9%BA%E7%9B%92.png#pic_center)
 ## 立方纹理天空盒
-![](./doc/res/image/立方纹理天空盒.png#pic_center)
+![](https://g901-1259621134.cos.ap-guangzhou.myqcloud.com/Web/Apex-Examples/doc/res/image/%E7%AB%8B%E6%96%B9%E7%BA%B9%E7%90%86%E5%A4%A9%E7%A9%BA%E7%9B%92.png#pic_center)
 ## 组件的创建
+![](https://g901-1259621134.cos.ap-guangzhou.myqcloud.com/Web/Apex-Examples/doc/res/image/%E7%BB%84%E4%BB%B6%E4%BD%BF%E7%94%A8%E6%A1%88%E4%BE%8B.png#pic_center)
 ## 创建各种几何体
-![](./doc/res/image/各种几何体.png#pic_center)
+![](https://g901-1259621134.cos.ap-guangzhou.myqcloud.com/Web/Apex-Examples/doc/res/image/%E5%90%84%E7%A7%8D%E5%87%A0%E4%BD%95%E4%BD%93.png#pic_center)
 ## 几何体的UV显示
-![](./doc/res/image/各种几何体UV展示.png#pic_center)
+![](https://g901-1259621134.cos.ap-guangzhou.myqcloud.com/Web/Apex-Examples/doc/res/image/%E5%90%84%E7%A7%8D%E5%87%A0%E4%BD%95%E4%BD%93UV%E5%B1%95%E7%A4%BA.png#pic_center)
 ## 自定义Mesh
-![](./doc/res/image/自定义Mesh.png#pic_center)
+![](https://g901-1259621134.cos.ap-guangzhou.myqcloud.com/Web/Apex-Examples/doc/res/image/%E8%87%AA%E5%AE%9A%E4%B9%89Mesh.png#pic_center)
 ## 数据纹理
-![](./doc/res/image/数据纹理.png#pic_center)
+![](https://g901-1259621134.cos.ap-guangzhou.myqcloud.com/Web/Apex-Examples/doc/res/image/%E6%95%B0%E6%8D%AE%E7%BA%B9%E7%90%86.png#pic_center)
 ## 渲染目标
-<video width = "1200" height = "800" controls = "controls" src = "./doc/res/video/渲染目标.mp4" type = "video/mp4"></video>
+<video width = "1200" height = "800" controls = "controls" src = "https://g901-1259621134.cos.ap-guangzhou.myqcloud.com/Web/Apex-Examples/doc/res/video/%E6%B8%B2%E6%9F%93%E7%9B%AE%E6%A0%87.mp4" type = "video/mp4"></video>
 
 ## 立方渲染目标
-<video width = "1200" height = "800" controls = "controls" src = "./doc/res/video/立方渲染目标.mp4" type = "video/mp4"></video>
+<video width = "1200" height = "800" controls = "controls" src = "https://g901-1259621134.cos.ap-guangzhou.myqcloud.com/Web/Apex-Examples/doc/res/video/%E7%AB%8B%E6%96%B9%E6%B8%B2%E6%9F%93%E7%9B%AE%E6%A0%87.mp4" type = "video/mp4"></video>
 
 ## 加载HDR图片
-![](./doc/res/image/加载HDR文件.png#pic_center)
+![](https://g901-1259621134.cos.ap-guangzhou.myqcloud.com/Web/Apex-Examples/doc/res/image/%E5%8A%A0%E8%BD%BDHDR%E6%96%87%E4%BB%B6.png#pic_center)
 ## PBR材质
-![](./doc/res/image/PBR材质.png#pic_center)
+![](https://g901-1259621134.cos.ap-guangzhou.myqcloud.com/Web/Apex-Examples/doc/res/image/PBR%E6%9D%90%E8%B4%A8.png#pic_center)
 ## PBR材质的几何体
-![](./doc/res/image/PBR几何体.png#pic_center)
+![](https://g901-1259621134.cos.ap-guangzhou.myqcloud.com/Web/Apex-Examples/doc/res/image/PBR%E5%87%A0%E4%BD%95%E4%BD%93.png#pic_center)
 ## PBR材质纹理
-![](./doc/res/image/PBR纹理.png#pic_center)
+![](https://g901-1259621134.cos.ap-guangzhou.myqcloud.com/Web/Apex-Examples/doc/res/image/PBR%E7%BA%B9%E7%90%86.png#pic_center)
 ## 加载GLTF
-![](./doc/res/image/加载GLTF模型.png#pic_center)
+![](https://g901-1259621134.cos.ap-guangzhou.myqcloud.com/Web/Apex-Examples/doc/res/image/%E5%8A%A0%E8%BD%BDGLTF%E6%A8%A1%E5%9E%8B.png#pic_center)
 ## 加载GLTF2
-![](./doc/res/image/加载GLTF2模型.png#pic_center)
+![](https://g901-1259621134.cos.ap-guangzhou.myqcloud.com/Web/Apex-Examples/doc/res/image/%E5%8A%A0%E8%BD%BDGLTF2%E6%A8%A1%E5%9E%8B.png#pic_center)
 ## 高斯模糊（后处理）
-![](./doc/res/image/高斯模糊.png#pic_center)
+![](https://g901-1259621134.cos.ap-guangzhou.myqcloud.com/Web/Apex-Examples/doc/res/image/%E9%AB%98%E6%96%AF%E6%A8%A1%E7%B3%8A.png#pic_center)
 ## 辉光效果（后处理）
-![](./doc/res/image/辉光效果.png#pic_center)
+![](https://g901-1259621134.cos.ap-guangzhou.myqcloud.com/Web/Apex-Examples/doc/res/image/%E8%BE%89%E5%85%89%E6%95%88%E6%9E%9C.png#pic_center)
 ## 自定义材质
-![](./doc/res/image/自定义材质.png#pic_center)
+![](https://g901-1259621134.cos.ap-guangzhou.myqcloud.com/Web/Apex-Examples/doc/res/image/%E8%87%AA%E5%AE%9A%E4%B9%89%E6%9D%90%E8%B4%A8.png#pic_center)
 ## 自定义后处理（反相）
-![](./doc/res/image/后期效果（反相）.png#pic_center)
+![](https://g901-1259621134.cos.ap-guangzhou.myqcloud.com/Web/Apex-Examples/doc/res/image/%E5%90%8E%E6%9C%9F%E6%95%88%E6%9E%9C%EF%BC%88%E5%8F%8D%E7%9B%B8%EF%BC%89.png#pic_center)
 ## 黄昏时刻
-<video width = "1200" height = "800" controls = "controls" src = "./doc/res/video/黄昏时刻.mp4" type = "video/mp4"></video>
+<video width = "1200" height = "800" controls = "controls" src = "https://g901-1259621134.cos.ap-guangzhou.myqcloud.com/Web/Apex-Examples/doc/res/video/%E9%BB%84%E6%98%8F%E6%97%B6%E5%88%BB.mp4" type = "video/mp4"></video>
