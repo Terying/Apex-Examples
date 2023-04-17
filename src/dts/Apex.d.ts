@@ -1,18 +1,4 @@
 declare namespace Apex {
-export default class Config {
-    static width: number;
-    static height: number;
-    static antiAliasing: boolean;
-    static isFPS: boolean;
-    static get aspect(): number;
-    static set(options?: {
-        width?: number;
-        height?: number;
-        antiAliasing?: boolean;
-        isFPS?: boolean;
-    }): void;
-}
-
 
 export declare class Engine {
     private _inputSystem;
@@ -32,6 +18,32 @@ export declare class Engine {
     private _logicalUpdate;
     private _renderUpdate;
     launchScene(scene: Scene): void;
+}
+
+export default class Config {
+    static width: number;
+    static height: number;
+    static antiAliasing: boolean;
+    static isFPS: boolean;
+    static get aspect(): number;
+    static set(options?: {
+        width?: number;
+        height?: number;
+        antiAliasing?: boolean;
+        isFPS?: boolean;
+    }): void;
+}
+
+export declare class Asset {
+    protected _uuid: string;
+    protected _referenceList: Set<string>;
+    protected _beReferenceList: Set<string>;
+    constructor();
+    get uuid(): string;
+    protected _addRef(uuid: string): void;
+    protected _decRef(uuid: string): void;
+    protected _addBeRef(uuid: string): void;
+    protected _decBeRef(uuid: string): void;
 }
 
 /**
@@ -165,6 +177,22 @@ export declare namespace Const {
         /**世界矩阵 */
         WORLD_MATRIX: number;
     };
+    enum CAMERA_CLEAR_FLAGS {
+        SKYBOX = 0,
+        SOLD_COLOR = 1,
+        DEPTH_ONLY = 2,
+        DONT_CLEAR = 3
+    }
+    enum CAMERA_PROJECTION {
+        PERSPECTIVE = 0,
+        ORTHOGRAPHIC = 1
+    }
+    enum TONE_MAPPING {
+        LINEAR = 0,
+        REINHARD = 1,
+        OPTIMIZED_CINEON = 2,
+        ACES_FILMIC = 3
+    }
     enum GL_TYPE {
         BOOL = 0,
         BOOL2 = 1,
@@ -292,12 +320,6 @@ export declare namespace Const {
         MIN_EQUATION: number;
         MAX_EQUATION: number;
     };
-    enum TONE_MAPPING {
-        LINEAR = 0,
-        REINHARD = 1,
-        OPTIMIZED_CINEON = 2,
-        ACES_FILMIC = 3
-    }
     /**默认Attribute表，系统会自动赋值 */
     const ATTRIBUTE_MAP: {
         a_Position: string;
@@ -646,28 +668,16 @@ export declare class Timer {
     addHandler(handler: Handler, once?: boolean): void;
 }
 
-export declare class Asset {
-    protected _uuid: string;
-    protected _referenceList: Set<string>;
-    protected _beReferenceList: Set<string>;
-    constructor();
-    get uuid(): string;
-    protected _addRef(uuid: string): void;
-    protected _decRef(uuid: string): void;
-    protected _addBeRef(uuid: string): void;
-    protected _decBeRef(uuid: string): void;
-}
-
 export declare class Animation extends Component {
     /**由内部进行分配 */
     static readonly FLAG: number;
 }
 
 export declare class BaseCamera extends Component {
-    protected _clearFlags: number;
+    protected _clearFlags: Const.CAMERA_CLEAR_FLAGS;
     protected _background: Color;
     protected _cullingLayers: number;
-    protected _orthographic: boolean;
+    protected _projection: Const.CAMERA_PROJECTION;
     protected _fov: number;
     protected _size: number;
     protected _aspect: number;
@@ -686,10 +696,12 @@ export declare class BaseCamera extends Component {
     protected _gamma: number;
     protected _isCubeCamera: boolean;
     constructor();
-    get clearFlags(): number;
-    set clearFlags(value: number);
+    get clearFlags(): Const.CAMERA_CLEAR_FLAGS;
+    set clearFlags(value: Const.CAMERA_CLEAR_FLAGS);
     get cullingLayers(): number;
     set cullingLayers(value: number);
+    get projection(): Const.CAMERA_PROJECTION;
+    set projection(value: Const.CAMERA_PROJECTION);
     get fov(): number;
     set fov(value: number);
     get aspect(): number;
@@ -715,6 +727,20 @@ export declare class BaseCamera extends Component {
     protected _onTransformChange(flags: number): void;
 }
 
+/**
+ *@author jhui
+ *@description 该组件做为脚本组件的基类
+ *@date 2022-11-30 15:33:43
+ */
+export declare class Behaviour extends Component {
+    onFixedUpdate?(dt: number): void;
+    onUpdate?(dt: number): void;
+    onLateUpdate?(dt: number): void;
+    onRenderBefore?(dt: number): void;
+    onRenderAfter?(dt: number): void;
+}
+
+
 export declare class Camera extends BaseCamera {
     /**由内部进行分配 */
     static readonly FLAG: number;
@@ -733,20 +759,6 @@ export declare class Camera extends BaseCamera {
     getCameraUBOData(): Map<string, any>;
     protected _updateViewMatrix(): void;
 }
-
-/**
- *@author jhui
- *@description 该组件做为脚本组件的基类
- *@date 2022-11-30 15:33:43
- */
-export declare class Behaviour extends Component {
-    onFixedUpdate?(dt: number): void;
-    onUpdate?(dt: number): void;
-    onLateUpdate?(dt: number): void;
-    onRenderBefore?(dt: number): void;
-    onRenderAfter?(dt: number): void;
-}
-
 
 /**
  *@author jhui
@@ -910,28 +922,6 @@ export declare class SkinnedMeshRenderer extends Component {
 
 /**
  *@author jhui
- *@description 漫游组件
- *@date 2023-02-19 10:53:30
- */
-export declare class Wander extends Behaviour {
-    private _tr;
-    private _forward;
-    private _right;
-    private _up;
-    private _euler;
-    private _moveSpeed;
-    private _rotateSpeed;
-    get moveSpeed(): number;
-    set moveSpeed(value: number);
-    get rotateSpeed(): number;
-    set rotateSpeed(value: number);
-    protected onAwake(): void;
-    protected onStart(): void;
-    onUpdate(dt: number): void;
-}
-
-/**
- *@author jhui
  *@description 空间变换组件
  *@description 确保局部空间属性最新，世界空间属性按需更新
  *@date 2022-12-20 14:24:11
@@ -974,6 +964,9 @@ export declare class Transform extends Component {
     setRotateByQuaternion(q: Quaternion, isWorld?: boolean): void;
     setRotateByMatrix(mtx: Matrix4, isWorld?: boolean): void;
     applyTranslate(v: Vector3, isWorld?: boolean): void;
+    applyTranslateX(distance: number, isWorld?: boolean): void;
+    applyTranslateY(distance: number, isWorld?: boolean): void;
+    applyTranslateZ(distance: number, isWorld?: boolean): void;
     applyRotateAround(target: Vector3, axis: Vector3, radian: number, isWorld?: boolean): void;
     applyRotateByAxisAngle(axis: Vector3, radian: number, isWorld?: boolean): void;
     applyRotateByEuler(euler: Euler, isWorld?: boolean): void;
@@ -1027,6 +1020,28 @@ export declare class Transform extends Component {
     private _tryUpdateWorldMatrix;
     private _getDirtyWorldFlag;
     private _setDirtyWorldFlag;
+}
+
+/**
+ *@author jhui
+ *@description 漫游组件
+ *@date 2023-02-19 10:53:30
+ */
+export declare class Wander extends Behaviour {
+    private _tr;
+    private _forward;
+    private _right;
+    private _up;
+    private _euler;
+    private _moveSpeed;
+    private _rotateSpeed;
+    get moveSpeed(): number;
+    set moveSpeed(value: number);
+    get rotateSpeed(): number;
+    set rotateSpeed(value: number);
+    protected onAwake(): void;
+    protected onStart(): void;
+    onUpdate(dt: number): void;
 }
 
 export declare class Stats {
@@ -1093,6 +1108,32 @@ export declare class EventDispatcher {
     hasEventListener(eventName: string, context: Object): number;
     removeEventListener(eventName: string, context: Object): void;
     dispatchEvent(eventName: string, ...params: Array<any>): void;
+}
+
+/**
+ *@author jhui
+ *@description 环境设置
+ *@date 2023-02-22 16:40:48
+ */
+export declare class EnvSetting {
+    private _scene;
+    private _fog;
+    private _skybox;
+    private _envLight;
+    private _envReflection;
+    private _gi;
+    constructor(scene: Scene);
+    get fog(): Fog;
+    get skybox(): SkyBox;
+    get envLight(): EnvLight;
+    get envReflection(): EnvReflection;
+    get gi(): GI;
+    /**
+     *@description 判断是否需要生成全局光照
+     *@param
+     *@return |更新反射纹理|更新环境光纹理|
+     */
+    needUpdateeGI(): number;
 }
 
 export declare class GameObject extends EventDispatcher {
@@ -1279,32 +1320,6 @@ export declare class GameObject extends EventDispatcher {
     static createPrimitive(type: Const.PRIMITIVE_TYPE, name?: string): GameObject;
 }
 
-/**
- *@author jhui
- *@description 环境设置
- *@date 2023-02-22 16:40:48
- */
-export declare class EnvSetting {
-    private _scene;
-    private _fog;
-    private _skybox;
-    private _envLight;
-    private _envReflection;
-    private _gi;
-    constructor(scene: Scene);
-    get fog(): Fog;
-    get skybox(): SkyBox;
-    get envLight(): EnvLight;
-    get envReflection(): EnvReflection;
-    get gi(): GI;
-    /**
-     *@description 判断是否需要生成全局光照
-     *@param
-     *@return |更新反射纹理|更新环境光纹理|
-     */
-    needUpdateeGI(): number;
-}
-
 export declare class Scene extends GameObject {
     private _assetMap;
     private _handleQueueMap;
@@ -1441,16 +1456,6 @@ export declare class AssetManager {
 
 /**
  *@author jhui
- *@description 全局事件管理器
- *@date 2023-01-28 18:47:41
- */
-export declare class EventManager extends EventDispatcher {
-    private static _ins;
-    static ins(): EventManager;
-}
-
-/**
- *@author jhui
  *@description 组件管理器，提过规则获取组件（可以是组合的方式）
  *@date 2022-11-19 11:44:59
  */
@@ -1470,6 +1475,16 @@ export declare class ComponentManager {
     removeComponent(component: Component): void;
     getComponentFlags(...componentTypes: Array<typeof Component>): number;
     private _removeComponent;
+}
+
+/**
+ *@author jhui
+ *@description 全局事件管理器
+ *@date 2023-01-28 18:47:41
+ */
+export declare class EventManager extends EventDispatcher {
+    private static _ins;
+    static ins(): EventManager;
 }
 
 /**
@@ -1810,104 +1825,6 @@ export declare class Matrix3 {
 
 /**
  *@author jhui
- *@description 四元数（采用Hamilton表示）
- *@date 2023-04-14 13:09:05
- */
-export declare class Quaternion {
-    /**
-     *@description 内置对象池，get()
-     *@description 必须在当前作用域内回收掉，不能在其它作用域里面回收
-     *@param x  初始值
-     *@param y  初始值
-     *@param z  初始值
-     *@param w  初始值
-     *@return Quaternion
-     */
-    static get(x?: number, y?: number, z?: number, w?: number): Quaternion;
-    /**
-     *@description 内置对象池，put()
-     *@param quat  回收对象
-     *@return Quaternion
-     */
-    static put(quat: Quaternion | Array<Quaternion>): void;
-    /**
-     *@description 四元数相乘（左乘） q1 x q2
-     *@param
-     *@return
-     */
-    static multiply(q1: Quaternion, q2: Quaternion, out: Quaternion): void;
-    /**共轭 */
-    static conjugate(q: Quaternion, out: Quaternion): void;
-    /**求逆，如果能够确定该四元数为单位四元数，可以用求共轭替代求逆 */
-    static invert(q: Quaternion, out: Quaternion): void;
-    static transformVector(q: Quaternion, v: Vector3, out: Vector3): void;
-    /**
-     *@description 将 from 四元数朝 to 进行球面插值
-     *@param
-     *@return
-     */
-    static slerp(from: Quaternion, to: Quaternion, t: number, out: Quaternion): void;
-    /**
-     *@description 将 from 四元数朝 to 进行线性插值，精确度没slerp高，但是性能要比slerp好
-     *@description 当两个四元数的夹角比较小（小于pi/2）时，可以用nlerp代替slerp
-     *@param
-     *@return
-     */
-    static nlerp(from: Quaternion, to: Quaternion, t: number, out: Quaternion): void;
-    /**
-     *@description 将 from 四元数朝 to 旋转 step 的角度步长
-     *@param
-     *@return
-     */
-    static rotateTowards(from: Quaternion, to: Quaternion, step: number, out: Quaternion): void;
-    static angle(q1: Quaternion, q2: Quaternion): number;
-    private _value;
-    constructor(x?: number, y?: number, z?: number, w?: number);
-    get x(): number;
-    set x(value: number);
-    get y(): number;
-    set y(value: number);
-    get z(): number;
-    set z(value: number);
-    get w(): number;
-    set w(value: number);
-    set(x: number, y: number, z: number, w: number): Quaternion;
-    setIdentify(): Quaternion;
-    /**
-     *@description 绕指定轴角旋转
-     *@param axis       旋转轴（单位向量）
-     *@param radian     旋转弧度
-     *@return Quaternion
-     */
-    setByAxisAngle(axis: Vector3, radian: number): Quaternion;
-    /**
-     *@description 从纯旋转矩阵中提取四元数（不能有缩放）
-     *@param mtx    旋转矩阵
-     *@return Quaternion
-     */
-    setByMatrix(mtx: Matrix4): Quaternion;
-    setByEuler(euler: Euler): Quaternion;
-    setByLookAt(forward: Vector3, up: Vector3): Quaternion;
-    setByVectors(fromV: Vector3, toV: Vector3): Quaternion;
-    multiply(q: Quaternion): Quaternion;
-    slerp(to: Quaternion, t: number): Quaternion;
-    rotateTowards(to: Quaternion, step: number): Quaternion;
-    dot(q: Quaternion): number;
-    length(): number;
-    lengthSquare(): number;
-    normalize(): Quaternion;
-    negate(): Quaternion;
-    conjugate(): Quaternion;
-    invert(): Quaternion;
-    angleTo(q: Quaternion): number;
-    transformVector(v: Vector3, outV: Vector3): Vector3;
-    copyFrom(src: Quaternion): Quaternion;
-    clone(): Quaternion;
-    toString(): string;
-}
-
-/**
- *@author jhui
  *@description 四阶矩阵，采用列主序
  *@date 2022-11-30 20:56:37
  */
@@ -2022,6 +1939,104 @@ export declare class Matrix4 {
     isEqual(m: Matrix4): boolean;
     copyFrom(src: Matrix4): Matrix4;
     clone(): Matrix4;
+    toString(): string;
+}
+
+/**
+ *@author jhui
+ *@description 四元数（采用Hamilton表示）
+ *@date 2023-04-14 13:09:05
+ */
+export declare class Quaternion {
+    /**
+     *@description 内置对象池，get()
+     *@description 必须在当前作用域内回收掉，不能在其它作用域里面回收
+     *@param x  初始值
+     *@param y  初始值
+     *@param z  初始值
+     *@param w  初始值
+     *@return Quaternion
+     */
+    static get(x?: number, y?: number, z?: number, w?: number): Quaternion;
+    /**
+     *@description 内置对象池，put()
+     *@param quat  回收对象
+     *@return Quaternion
+     */
+    static put(quat: Quaternion | Array<Quaternion>): void;
+    /**
+     *@description 四元数相乘（左乘） q1 x q2
+     *@param
+     *@return
+     */
+    static multiply(q1: Quaternion, q2: Quaternion, out: Quaternion): void;
+    /**共轭 */
+    static conjugate(q: Quaternion, out: Quaternion): void;
+    /**求逆，如果能够确定该四元数为单位四元数，可以用求共轭替代求逆 */
+    static invert(q: Quaternion, out: Quaternion): void;
+    static transformVector(q: Quaternion, v: Vector3, out: Vector3): void;
+    /**
+     *@description 将 from 四元数朝 to 进行球面插值
+     *@param
+     *@return
+     */
+    static slerp(from: Quaternion, to: Quaternion, t: number, out: Quaternion): void;
+    /**
+     *@description 将 from 四元数朝 to 进行线性插值，精确度没slerp高，但是性能要比slerp好
+     *@description 当两个四元数的夹角比较小（小于pi/2）时，可以用nlerp代替slerp
+     *@param
+     *@return
+     */
+    static nlerp(from: Quaternion, to: Quaternion, t: number, out: Quaternion): void;
+    /**
+     *@description 将 from 四元数朝 to 旋转 step 的角度步长
+     *@param
+     *@return
+     */
+    static rotateTowards(from: Quaternion, to: Quaternion, step: number, out: Quaternion): void;
+    static angle(q1: Quaternion, q2: Quaternion): number;
+    private _value;
+    constructor(x?: number, y?: number, z?: number, w?: number);
+    get x(): number;
+    set x(value: number);
+    get y(): number;
+    set y(value: number);
+    get z(): number;
+    set z(value: number);
+    get w(): number;
+    set w(value: number);
+    set(x: number, y: number, z: number, w: number): Quaternion;
+    setIdentify(): Quaternion;
+    /**
+     *@description 绕指定轴角旋转
+     *@param axis       旋转轴（单位向量）
+     *@param radian     旋转弧度
+     *@return Quaternion
+     */
+    setByAxisAngle(axis: Vector3, radian: number): Quaternion;
+    /**
+     *@description 从纯旋转矩阵中提取四元数（不能有缩放）
+     *@param mtx    旋转矩阵
+     *@return Quaternion
+     */
+    setByMatrix(mtx: Matrix4): Quaternion;
+    setByEuler(euler: Euler): Quaternion;
+    setByLookAt(forward: Vector3, up: Vector3): Quaternion;
+    setByVectors(fromV: Vector3, toV: Vector3): Quaternion;
+    multiply(q: Quaternion): Quaternion;
+    slerp(to: Quaternion, t: number): Quaternion;
+    rotateTowards(to: Quaternion, step: number): Quaternion;
+    dot(q: Quaternion): number;
+    length(): number;
+    lengthSquare(): number;
+    normalize(): Quaternion;
+    negate(): Quaternion;
+    conjugate(): Quaternion;
+    invert(): Quaternion;
+    angleTo(q: Quaternion): number;
+    transformVector(v: Vector3, outV: Vector3): Vector3;
+    copyFrom(src: Quaternion): Quaternion;
+    clone(): Quaternion;
     toString(): string;
 }
 
@@ -2474,106 +2489,6 @@ export declare namespace Utils {
     const Data: DataUtil;
 }
 
-
-
-
-/**
- *@author jhui
- *@description 封装TypedArray，实现Array数组的部分功能
- *@date 2022-11-20 09:17:19
- */
-export declare class TBuffer<T extends Const.TypeArray> {
-    protected _type: Const.TYPE_ARRAY;
-    protected _source: T;
-    protected _capacity: number;
-    protected _length: number;
-    protected _autoExpand: boolean;
-    protected _creator: new (length: number) => T;
-    constructor(data: T, capacity: number, autoExpand: boolean);
-    constructor(creator: new (length: number) => T, capacity: number, autoExpand: boolean);
-    get type(): Const.TYPE_ARRAY;
-    get source(): T;
-    get length(): number;
-    get capacity(): number;
-    get creator(): new (length: number) => T;
-    get fSize(): number;
-    getIndex(index: number): number;
-    setIndex(index: number, value: number): void;
-    push(item: number): void;
-    pushArray(items: ArrayLike<number>): void;
-    pop(): number;
-    unshift(item: number): void;
-    unshiftArray(items: ArrayLike<number>): void;
-    shift(): void;
-    slice(startIx?: number, endIx?: number): TBuffer<T>;
-    /**
-     *@description 拼接数据，对应Array相应方法
-     *@param startIx            拼接起点
-     *@param deleteCount        在拼接处需要移除的元素个数
-     *@param insertItems        在拼接处需要插入的元素
-     *@param collectDeleteItem  是否需要收集返回被移除的元素
-     *@return 被移除的元素（如果需要收集）
-     */
-    splice(startIx: number, deleteCount?: number, insertItems?: ArrayLike<number>, collectDeleteItem?: boolean): T;
-    clear(): void;
-    /**
-     *@description 检测buffer是否填满
-     *@param
-     *@return
-     */
-    protected _checkFill(): boolean;
-    /**
-     *@description 扩容，目前按照自身大小的二倍进行扩展
-     *@param
-     *@return
-     */
-    protected _expand(): void;
-    protected _setCapacity(capacity: number): void;
-}
-
-/// <reference types="node" />
-/**
- *@author jhui
- *@description 顶点buffer，使用交错的方式进行存储
- *@date 2022-11-18 09:01:08
- */
-export declare class VertexBuffer extends TBuffer<Float32Array> {
-    private _attribNames;
-    private _attribSizes;
-    private _vertexSpan;
-    private _vertexCount;
-    constructor(attribNames: Array<string>, attribSizes: Array<number>, vertexCount: number);
-    get attribNames(): Array<string>;
-    get vertexSpan(): number;
-    hasAttribute(name: string): boolean;
-    getAttribute(name: string): Float32Array;
-    getAttribute2At(name: string, index: number, outVec2: Vector2): Vector2;
-    getAttribute3At(name: string, index: number, outVec3: Vector3): Vector3;
-    setAttribute(name: string, data: RelativeIndexable<number>): void;
-    setAttribute2At(name: string, index: number, vec2: Vector2): void;
-    setAttribute3At(name: string, index: number, vec3: Vector3): void;
-    getAttributeOffset(name: string): number;
-    getAttributeSize(name: string): number;
-    /**
-     *@description 获取指定顶点的属性值
-     *@param name   属性名
-     *@param index  顶点索引
-     *@param out    接收结果容器
-     *@param count  数据个数
-     *@return
-     */
-    private _getAttributeAt;
-    /**
-     *@description 赋于指定顶点的属性值
-     *@param name   属性名
-     *@param index  顶点索引
-     *@param value  属性值
-     *@param count  数据个数
-     *@return
-     */
-    private _setAttributeAt;
-}
-
 /**
  *@author jhui
  *@description 使用冯氏光照模型的材质
@@ -2613,6 +2528,26 @@ export declare class IrradianceMaterial extends Material {
     set mainTexture(value: BaseTexture);
     protected _initShader(): void;
     protected _initDefine(): void;
+    protected _initUniform(): void;
+}
+
+/**
+ *@author jhui
+ *@description 将贴图映射到立方体上
+ *@date 2023-03-14 11:06:49
+ */
+export declare class MapToCubeMaterial extends Material {
+    private static _useEqRectMap;
+    private static _useCubeMap;
+    private static _eqRectMap;
+    private static _cubeMap;
+    private _mainTexture;
+    get mainTexture(): BaseTexture;
+    set mainTexture(value: BaseTexture);
+    constructor(options?: {
+        mainTexture?: BaseTexture;
+    });
+    protected _initShader(): void;
     protected _initUniform(): void;
 }
 
@@ -2695,26 +2630,6 @@ export declare abstract class Material {
     protected _initRenderMode(): void;
     protected _setRenderMode(renderMode: number): void;
     protected _setBlendMode(blendMode: number): void;
-}
-
-/**
- *@author jhui
- *@description 将贴图映射到立方体上
- *@date 2023-03-14 11:06:49
- */
-export declare class MapToCubeMaterial extends Material {
-    private static _useEqRectMap;
-    private static _useCubeMap;
-    private static _eqRectMap;
-    private static _cubeMap;
-    private _mainTexture;
-    get mainTexture(): BaseTexture;
-    set mainTexture(value: BaseTexture);
-    constructor(options?: {
-        mainTexture?: BaseTexture;
-    });
-    protected _initShader(): void;
-    protected _initUniform(): void;
 }
 
 export declare class PBRMaterial extends Material {
@@ -2917,216 +2832,6 @@ export declare class SubMesh {
     constructor(mesh: Mesh, sIndex: number, iCount: number, indexInMesh: number);
     get indexInMesh(): number;
     draw(gl: WebGL2RenderingContext, mode: number): void;
-}
-
-export declare class BlockUniform {
-    private _name;
-    private _data;
-    constructor(name: string, data: BlockItem<any> | BlockGroup<any>);
-    get name(): string;
-    get type(): Const.GL_TYPE;
-    get data(): BlockItem<any> | BlockGroup<any>;
-    getNextBaseOffset(): number;
-    setBaseOffset(offset: number): void;
-}
-
-export declare class Define {
-    private _flag;
-    private _id;
-    private _name;
-    constructor(id: number, name: string, flag: BitOp);
-    get id(): number;
-    get name(): string;
-    get flag(): BitOp;
-}
-
-export declare class DefineGroup {
-    /**记录该组的宏定义集合 */
-    private _flags;
-    private _defines;
-    constructor();
-    get flags(): BitOp;
-    addDefine(define: Define): void;
-    removeDefine(defineID: number): Define;
-    getDefine(defineID: number): Define;
-    hasDefine(defineID: number): boolean;
-}
-
-export declare class Shader {
-    static ID: number;
-    private _id;
-    private _name;
-    private _attributes;
-    private _uniforms;
-    private _uniformBlockGroup;
-    private _pass;
-    private _instancing;
-    constructor(name: string, attributes: Set<string>, uniforms: Set<string>, blockGroup: UniformBlockGroup, instancing: boolean);
-    get id(): number;
-    get name(): string;
-    get attributes(): Set<string>;
-    get uniforms(): Set<string>;
-    get uniformBlockGroup(): UniformBlockGroup;
-    get pass(): Array<ShaderPass>;
-    /**
-     *@description 添加渲染通道
-     *@param vs
-     *@param fs
-     *@return ShaderPass
-     */
-    addPass(vs: string, fs: string): ShaderPass;
-}
-
-/**
- *@author jhui
- *@description 每个shader实例的数据
- *@date 2023-01-09 13:43:02
- */
-export declare class ShaderData {
-    private _defineGroup;
-    private _uniformGroup;
-    constructor();
-    get defineGroup(): DefineGroup;
-    get uniformGroup(): UniformGroup;
-    addDefine(define: Define): void;
-    removeDefine(defineID: number): Define;
-    getDefine(defineID: number): Define;
-    hasDefine(defineID: number): boolean;
-    addUniform<T>(uniform: Uniform<T>): void;
-    removeUniform<T>(uniformID: number): Uniform<T>;
-    getBoolean(uniformID: number): Uniform<boolean>;
-    getInt(uniformID: number): Uniform<number>;
-    getFloat(uniformID: number): Uniform<number>;
-    getFloat2(uniformID: number): Uniform<Vector2>;
-    setFloat2(uniformID: number, value: Vector2): void;
-    getFloat3(uniformID: number): Uniform<Vector3>;
-    getFloat4(uniformID: number): Uniform<Vector4>;
-    getMatrix3(uniformID: number): Uniform<Matrix3>;
-    getMatrix4(uniformID: number): Uniform<Matrix4>;
-    getColor(uniformID: number): Uniform<Color>;
-    getTexture(uniformID: number): Uniform<BaseTexture>;
-    setTexture(uniformID: number, data: BaseTexture): void;
-    getCubeTexture(uniformID: number): Uniform<BaseTexture>;
-}
-
-/**
- *@author jhui
- *@description Shader副本，由Shader编译出来的
- *@date 2023-01-09 14:05:12
- */
-export declare class ShaderEctype {
-    private _owner;
-    private _program;
-    private _uniformMap;
-    private _uniformBlockMap;
-    constructor(pass: ShaderPass);
-    get program(): GLProgram;
-    get invalid(): boolean;
-    get uniformMap(): Map<string, WebGLUniformLocation>;
-    get uniformBlockMap(): Map<number, number>;
-    get uniformBlockIDs(): Array<number>;
-    use(): void;
-    compile(gl: WebGL2RenderingContext, vs: string, fs: string): void;
-}
-
-export declare class ShaderPass {
-    private _owner;
-    private _vsCode;
-    private _fsCode;
-    private _shaderEctypes;
-    constructor(shader: Shader, vs: string, fs: string);
-    get attributes(): Set<string>;
-    get uniforms(): Set<string>;
-    get uniformBlockGroup(): UniformBlockGroup;
-    /**
-     *@description 根据defineGroup编译出对应版本的Shader
-     *@param gl                     webgl上下文
-     *@param defineGroup            宏定义
-     *@return
-     */
-    compile(gl: WebGL2RenderingContext, defineGroup: DefineGroup): ShaderEctype;
-}
-
-export declare class UniformBlock {
-    private _flag;
-    private _frame;
-    private _id;
-    private _name;
-    private _uniformMap;
-    private _lastUniform;
-    private _buffer;
-    private _gl;
-    private _UBO;
-    constructor(id: number, name: string);
-    get flag(): number;
-    get frame(): number;
-    set frame(value: number);
-    /**同时作为绑定点位置 */
-    get id(): number;
-    get name(): string;
-    get uniforms(): Array<BlockUniform>;
-    setUp(gl: WebGL2RenderingContext): void;
-    unSetup(): void;
-    addUniform(blockUniform: BlockUniform): void;
-    updateData(gl: WebGL2RenderingContext, data: Map<string, any>): void;
-    upload(gl: WebGL2RenderingContext): void;
-    destroy(): void;
-    private _calculateSize;
-}
-
-export declare class Uniform<T> {
-    static uploadInt(gl: WebGL2RenderingContext, location: WebGLUniformLocation): void;
-    static uploadFloat(gl: WebGL2RenderingContext, location: WebGLUniformLocation): void;
-    static uploadFloat2(gl: WebGL2RenderingContext, location: WebGLUniformLocation): void;
-    static uploadFloat3(gl: WebGL2RenderingContext, location: WebGLUniformLocation): void;
-    static uploadFloat4(gl: WebGL2RenderingContext, location: WebGLUniformLocation): void;
-    static uploadMatrix3(gl: WebGL2RenderingContext, location: WebGLUniformLocation): void;
-    static uploadMatrix4(gl: WebGL2RenderingContext, location: WebGLUniformLocation): void;
-    static uploadTexture(gl: WebGL2RenderingContext, location: WebGLUniformLocation, unit: number): void;
-    static uploadCubeTexture(gl: WebGL2RenderingContext, location: WebGLUniformLocation, unit: number): void;
-    private _id;
-    private _type;
-    private _data;
-    upload: (gl: WebGL2RenderingContext, ...params: any) => void;
-    constructor(type: Const.GL_TYPE, id: number, data?: T);
-    get id(): number;
-    get type(): Const.GL_TYPE;
-    get data(): T;
-    set data(value: T);
-}
-
-export declare class UniformBlockGroup {
-    private _flags;
-    private _uniformBlockMap;
-    private _uniformBlockIDs;
-    private _uniformBlocks;
-    constructor();
-    get flags(): number;
-    get uniformBlockIDs(): Array<number>;
-    get uniformBlocks(): Array<UniformBlock>;
-    addUniformBlock(uniformBlock: UniformBlock): void;
-    removeUniformBlock(uniformBlockID: number): UniformBlock;
-    getUniformBlock(uniformBlockID: number): UniformBlock;
-    hasUniformBlock(uniformBlockID: number): boolean;
-}
-
-export declare class UniformGroup {
-    private _uniformMap;
-    constructor();
-    get uniformMap(): Map<number, Uniform<any>>;
-    addUniform<T>(uniform: Uniform<T>): void;
-    removeUniform<T>(uniformID: number): Uniform<T>;
-    getBoolean(uniformID: number): Uniform<boolean>;
-    getInt(uniformID: number): Uniform<number>;
-    getFloat(uniformID: number): Uniform<number>;
-    getFloat2(uniformID: number): Uniform<Vector2>;
-    getFloat3(uniformID: number): Uniform<Vector3>;
-    getFloat4(uniformID: number): Uniform<Vector4>;
-    getMatrix3(uniformID: number): Uniform<Matrix3>;
-    getMatrix4(uniformID: number): Uniform<Matrix4>;
-    getColor(uniformID: number): Uniform<Color>;
-    getTexture(uniformID: number): Uniform<BaseTexture>;
-    getCubeTexture(uniformID: number): Uniform<BaseTexture>;
 }
 
 /**
@@ -3431,6 +3136,316 @@ export declare class Texture extends BaseTexture {
  */
 export declare class Texture3D extends Asset {
 }
+
+export declare class BlockUniform {
+    private _name;
+    private _data;
+    constructor(name: string, data: BlockItem<any> | BlockGroup<any>);
+    get name(): string;
+    get type(): Const.GL_TYPE;
+    get data(): BlockItem<any> | BlockGroup<any>;
+    getNextBaseOffset(): number;
+    setBaseOffset(offset: number): void;
+}
+
+export declare class Define {
+    private _flag;
+    private _id;
+    private _name;
+    constructor(id: number, name: string, flag: BitOp);
+    get id(): number;
+    get name(): string;
+    get flag(): BitOp;
+}
+
+export declare class Shader {
+    static ID: number;
+    private _id;
+    private _name;
+    private _attributes;
+    private _uniforms;
+    private _uniformBlockGroup;
+    private _pass;
+    private _instancing;
+    constructor(name: string, attributes: Set<string>, uniforms: Set<string>, blockGroup: UniformBlockGroup, instancing: boolean);
+    get id(): number;
+    get name(): string;
+    get attributes(): Set<string>;
+    get uniforms(): Set<string>;
+    get uniformBlockGroup(): UniformBlockGroup;
+    get pass(): Array<ShaderPass>;
+    /**
+     *@description 添加渲染通道
+     *@param vs
+     *@param fs
+     *@return ShaderPass
+     */
+    addPass(vs: string, fs: string): ShaderPass;
+}
+
+export declare class DefineGroup {
+    /**记录该组的宏定义集合 */
+    private _flags;
+    private _defines;
+    constructor();
+    get flags(): BitOp;
+    addDefine(define: Define): void;
+    removeDefine(defineID: number): Define;
+    getDefine(defineID: number): Define;
+    hasDefine(defineID: number): boolean;
+}
+
+/**
+ *@author jhui
+ *@description 每个shader实例的数据
+ *@date 2023-01-09 13:43:02
+ */
+export declare class ShaderData {
+    private _defineGroup;
+    private _uniformGroup;
+    constructor();
+    get defineGroup(): DefineGroup;
+    get uniformGroup(): UniformGroup;
+    addDefine(define: Define): void;
+    removeDefine(defineID: number): Define;
+    getDefine(defineID: number): Define;
+    hasDefine(defineID: number): boolean;
+    addUniform<T>(uniform: Uniform<T>): void;
+    removeUniform<T>(uniformID: number): Uniform<T>;
+    getBoolean(uniformID: number): Uniform<boolean>;
+    getInt(uniformID: number): Uniform<number>;
+    getFloat(uniformID: number): Uniform<number>;
+    getFloat2(uniformID: number): Uniform<Vector2>;
+    setFloat2(uniformID: number, value: Vector2): void;
+    getFloat3(uniformID: number): Uniform<Vector3>;
+    getFloat4(uniformID: number): Uniform<Vector4>;
+    getMatrix3(uniformID: number): Uniform<Matrix3>;
+    getMatrix4(uniformID: number): Uniform<Matrix4>;
+    getColor(uniformID: number): Uniform<Color>;
+    getTexture(uniformID: number): Uniform<BaseTexture>;
+    setTexture(uniformID: number, data: BaseTexture): void;
+    getCubeTexture(uniformID: number): Uniform<BaseTexture>;
+}
+
+/**
+ *@author jhui
+ *@description Shader副本，由Shader编译出来的
+ *@date 2023-01-09 14:05:12
+ */
+export declare class ShaderEctype {
+    private _owner;
+    private _program;
+    private _uniformMap;
+    private _uniformBlockMap;
+    constructor(pass: ShaderPass);
+    get program(): GLProgram;
+    get invalid(): boolean;
+    get uniformMap(): Map<string, WebGLUniformLocation>;
+    get uniformBlockMap(): Map<number, number>;
+    get uniformBlockIDs(): Array<number>;
+    use(): void;
+    compile(gl: WebGL2RenderingContext, vs: string, fs: string): void;
+}
+
+export declare class Uniform<T> {
+    static uploadInt(gl: WebGL2RenderingContext, location: WebGLUniformLocation): void;
+    static uploadFloat(gl: WebGL2RenderingContext, location: WebGLUniformLocation): void;
+    static uploadFloat2(gl: WebGL2RenderingContext, location: WebGLUniformLocation): void;
+    static uploadFloat3(gl: WebGL2RenderingContext, location: WebGLUniformLocation): void;
+    static uploadFloat4(gl: WebGL2RenderingContext, location: WebGLUniformLocation): void;
+    static uploadMatrix3(gl: WebGL2RenderingContext, location: WebGLUniformLocation): void;
+    static uploadMatrix4(gl: WebGL2RenderingContext, location: WebGLUniformLocation): void;
+    static uploadTexture(gl: WebGL2RenderingContext, location: WebGLUniformLocation, unit: number): void;
+    static uploadCubeTexture(gl: WebGL2RenderingContext, location: WebGLUniformLocation, unit: number): void;
+    private _id;
+    private _type;
+    private _data;
+    upload: (gl: WebGL2RenderingContext, ...params: any) => void;
+    constructor(type: Const.GL_TYPE, id: number, data?: T);
+    get id(): number;
+    get type(): Const.GL_TYPE;
+    get data(): T;
+    set data(value: T);
+}
+
+export declare class ShaderPass {
+    private _owner;
+    private _vsCode;
+    private _fsCode;
+    private _shaderEctypes;
+    constructor(shader: Shader, vs: string, fs: string);
+    get attributes(): Set<string>;
+    get uniforms(): Set<string>;
+    get uniformBlockGroup(): UniformBlockGroup;
+    /**
+     *@description 根据defineGroup编译出对应版本的Shader
+     *@param gl                     webgl上下文
+     *@param defineGroup            宏定义
+     *@return
+     */
+    compile(gl: WebGL2RenderingContext, defineGroup: DefineGroup): ShaderEctype;
+}
+
+export declare class UniformBlock {
+    private _flag;
+    private _frame;
+    private _id;
+    private _name;
+    private _uniformMap;
+    private _lastUniform;
+    private _buffer;
+    private _gl;
+    private _UBO;
+    constructor(id: number, name: string);
+    get flag(): number;
+    get frame(): number;
+    set frame(value: number);
+    /**同时作为绑定点位置 */
+    get id(): number;
+    get name(): string;
+    get uniforms(): Array<BlockUniform>;
+    setUp(gl: WebGL2RenderingContext): void;
+    unSetup(): void;
+    addUniform(blockUniform: BlockUniform): void;
+    updateData(gl: WebGL2RenderingContext, data: Map<string, any>): void;
+    upload(gl: WebGL2RenderingContext): void;
+    destroy(): void;
+    private _calculateSize;
+}
+
+export declare class UniformBlockGroup {
+    private _flags;
+    private _uniformBlockMap;
+    private _uniformBlockIDs;
+    private _uniformBlocks;
+    constructor();
+    get flags(): number;
+    get uniformBlockIDs(): Array<number>;
+    get uniformBlocks(): Array<UniformBlock>;
+    addUniformBlock(uniformBlock: UniformBlock): void;
+    removeUniformBlock(uniformBlockID: number): UniformBlock;
+    getUniformBlock(uniformBlockID: number): UniformBlock;
+    hasUniformBlock(uniformBlockID: number): boolean;
+}
+
+export declare class UniformGroup {
+    private _uniformMap;
+    constructor();
+    get uniformMap(): Map<number, Uniform<any>>;
+    addUniform<T>(uniform: Uniform<T>): void;
+    removeUniform<T>(uniformID: number): Uniform<T>;
+    getBoolean(uniformID: number): Uniform<boolean>;
+    getInt(uniformID: number): Uniform<number>;
+    getFloat(uniformID: number): Uniform<number>;
+    getFloat2(uniformID: number): Uniform<Vector2>;
+    getFloat3(uniformID: number): Uniform<Vector3>;
+    getFloat4(uniformID: number): Uniform<Vector4>;
+    getMatrix3(uniformID: number): Uniform<Matrix3>;
+    getMatrix4(uniformID: number): Uniform<Matrix4>;
+    getColor(uniformID: number): Uniform<Color>;
+    getTexture(uniformID: number): Uniform<BaseTexture>;
+    getCubeTexture(uniformID: number): Uniform<BaseTexture>;
+}
+
+/**
+ *@author jhui
+ *@description 封装TypedArray，实现Array数组的部分功能
+ *@date 2022-11-20 09:17:19
+ */
+export declare class TBuffer<T extends Const.TypeArray> {
+    protected _type: Const.TYPE_ARRAY;
+    protected _source: T;
+    protected _capacity: number;
+    protected _length: number;
+    protected _autoExpand: boolean;
+    protected _creator: new (length: number) => T;
+    constructor(data: T, capacity: number, autoExpand: boolean);
+    constructor(creator: new (length: number) => T, capacity: number, autoExpand: boolean);
+    get type(): Const.TYPE_ARRAY;
+    get source(): T;
+    get length(): number;
+    get capacity(): number;
+    get creator(): new (length: number) => T;
+    get fSize(): number;
+    getIndex(index: number): number;
+    setIndex(index: number, value: number): void;
+    push(item: number): void;
+    pushArray(items: ArrayLike<number>): void;
+    pop(): number;
+    unshift(item: number): void;
+    unshiftArray(items: ArrayLike<number>): void;
+    shift(): void;
+    slice(startIx?: number, endIx?: number): TBuffer<T>;
+    /**
+     *@description 拼接数据，对应Array相应方法
+     *@param startIx            拼接起点
+     *@param deleteCount        在拼接处需要移除的元素个数
+     *@param insertItems        在拼接处需要插入的元素
+     *@param collectDeleteItem  是否需要收集返回被移除的元素
+     *@return 被移除的元素（如果需要收集）
+     */
+    splice(startIx: number, deleteCount?: number, insertItems?: ArrayLike<number>, collectDeleteItem?: boolean): T;
+    clear(): void;
+    /**
+     *@description 检测buffer是否填满
+     *@param
+     *@return
+     */
+    protected _checkFill(): boolean;
+    /**
+     *@description 扩容，目前按照自身大小的二倍进行扩展
+     *@param
+     *@return
+     */
+    protected _expand(): void;
+    protected _setCapacity(capacity: number): void;
+}
+
+/// <reference types="node" />
+/**
+ *@author jhui
+ *@description 顶点buffer，使用交错的方式进行存储
+ *@date 2022-11-18 09:01:08
+ */
+export declare class VertexBuffer extends TBuffer<Float32Array> {
+    private _attribNames;
+    private _attribSizes;
+    private _vertexSpan;
+    private _vertexCount;
+    constructor(attribNames: Array<string>, attribSizes: Array<number>, vertexCount: number);
+    get attribNames(): Array<string>;
+    get vertexSpan(): number;
+    hasAttribute(name: string): boolean;
+    getAttribute(name: string): Float32Array;
+    getAttribute2At(name: string, index: number, outVec2: Vector2): Vector2;
+    getAttribute3At(name: string, index: number, outVec3: Vector3): Vector3;
+    setAttribute(name: string, data: RelativeIndexable<number>): void;
+    setAttribute2At(name: string, index: number, vec2: Vector2): void;
+    setAttribute3At(name: string, index: number, vec3: Vector3): void;
+    getAttributeOffset(name: string): number;
+    getAttributeSize(name: string): number;
+    /**
+     *@description 获取指定顶点的属性值
+     *@param name   属性名
+     *@param index  顶点索引
+     *@param out    接收结果容器
+     *@param count  数据个数
+     *@return
+     */
+    private _getAttributeAt;
+    /**
+     *@description 赋于指定顶点的属性值
+     *@param name   属性名
+     *@param index  顶点索引
+     *@param value  属性值
+     *@param count  数据个数
+     *@return
+     */
+    private _setAttributeAt;
+}
+
+
+
 
 /**
  *@author jhui
@@ -3797,12 +3812,6 @@ export declare class RenderQueue {
     clear(): void;
 }
 
-
-
-
-
-
-
 export declare class BloomPass extends EffectPass {
     private static _sourceMapID;
     private static _thresholdID;
@@ -3949,6 +3958,7 @@ export declare class BlockGroup<T extends BlockStruct | Array<BlockStruct>> {
     static updateDatas(buffer: TBuffer<Float32Array>, data: Array<Map<string, any>>): boolean;
     private _data;
     private _length;
+    private _isArray;
     getNextBaseOffset: () => number;
     setBaseOffset: (offset: number) => void;
     updateData: (buffer: TBuffer<Float32Array>, data: any) => boolean;
@@ -3972,6 +3982,7 @@ export declare class BlockItem<T> {
     private _type;
     private _data;
     private _length;
+    private _isArray;
     private _baseAlignment;
     private _alignedOffset;
     private _size;
@@ -4005,13 +4016,19 @@ export declare class ParallelLightStruct extends BlockStruct {
     constructor();
 }
 
+export declare class PointLightStruct extends BlockStruct {
+    constructor();
+}
+
 export declare class SpotLightStruct extends BlockStruct {
     constructor();
 }
 
-export declare class PointLightStruct extends BlockStruct {
-    constructor();
-}
+
+
+
+
+
 
 /**
  *@author jhui
