@@ -65,10 +65,12 @@
 ## 数据纹理
 ![](https://g901-1259621134.cos.ap-guangzhou.myqcloud.com/Web/Apex-Examples/doc/res/image/%E6%95%B0%E6%8D%AE%E7%BA%B9%E7%90%86.png#pic_center)
 ## 渲染目标
-<video width = "1200" height = "800" controls = "controls" src = "https://g901-1259621134.cos.ap-guangzhou.myqcloud.com/Web/Apex-Examples/doc/res/video/%E6%B8%B2%E6%9F%93%E7%9B%AE%E6%A0%87.mp4" type = "video/mp4"></video>
+
+https://user-images.githubusercontent.com/40977038/232704256-b177c9e6-f3d5-4fa9-b70a-79e4a9490204.mp4
 
 ## 立方渲染目标
-<video width = "1200" height = "800" controls = "controls" src = "https://g901-1259621134.cos.ap-guangzhou.myqcloud.com/Web/Apex-Examples/doc/res/video/%E7%AB%8B%E6%96%B9%E6%B8%B2%E6%9F%93%E7%9B%AE%E6%A0%87.mp4" type = "video/mp4"></video>
+
+https://user-images.githubusercontent.com/40977038/232704348-a7be3b40-db79-437e-8f61-7b5aabc7ca56.mp4
 
 ## 加载HDR图片
 ![](https://g901-1259621134.cos.ap-guangzhou.myqcloud.com/Web/Apex-Examples/doc/res/image/%E5%8A%A0%E8%BD%BDHDR%E6%96%87%E4%BB%B6.png#pic_center)
@@ -91,4 +93,5 @@
 ## 自定义后处理（反相）
 ![](https://g901-1259621134.cos.ap-guangzhou.myqcloud.com/Web/Apex-Examples/doc/res/image/%E5%90%8E%E6%9C%9F%E6%95%88%E6%9E%9C%EF%BC%88%E5%8F%8D%E7%9B%B8%EF%BC%89.png#pic_center)
 ## 黄昏时刻
-<video width = "1200" height = "800" controls = "controls" src = "https://g901-1259621134.cos.ap-guangzhou.myqcloud.com/Web/Apex-Examples/doc/res/video/%E9%BB%84%E6%98%8F%E6%97%B6%E5%88%BB.mp4" type = "video/mp4"></video>
+
+https://user-images.githubusercontent.com/40977038/232704795-ab7b3046-dee3-4399-b8ee-6c07f292bcaa.mp4
